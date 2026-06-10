@@ -1,0 +1,379 @@
+# 定义公共模板锚点
+x-backend-template: &backend-template
+  build:
+    context: ../backend
+    dockerfile: Dockerfile
+  restart: unless-stopped
+  depends_on:
+    mysql:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+    mongodb:
+      condition: service_healthy
+    rabbitmq:
+      condition: service_healthy
+    minio:
+      condition: service_started
+    ollama:
+      condition: service_started
+  environment:
+    JAVA_OPTS: "-Xms2g -Xmx2g -XX:MaxDirectMemorySize=512m -XX:+UseG1GC -XX:+UseContainerSupport"
+    SERVER_PORT: 8080
+    SERVER_SERVLET_CONTEXT_PATH: /
+    SERVER_TOMCAT_URI_ENCODING: UTF-8
+    STORAGE_S3_ENDPOINT: http://minio:9000
+    STORAGE_S3_ACCESS_KEY: root
+    STORAGE_S3_SECRET_KEY: 123456
+    STORAGE_S3_DEFAULT_BUCKET: chat-db
+    STORAGE_S3_REGION: us-east-1
+    STORAGE_S3_DEFAULT_AVATAR_PATH: system/default/avatar.jpg
+    STORAGE_S3_PATH_STYLE_ACCESS: "true"
+    STORAGE_S3_PRESIGNED_URL_EXPIRY_MINUTES: "10"
+    STORAGE_S3_CDN_DOMAIN: "http://localhost/minio"
+    STORAGE_S3_AVATAR_COMPRESS_ENABLED: "true"
+    STORAGE_S3_AVATAR_COMPRESS_MAX_WIDTH: "800"
+    STORAGE_S3_AVATAR_COMPRESS_MAX_HEIGHT: "800"
+    STORAGE_S3_AVATAR_COMPRESS_QUALITY: "0.85"
+    STORAGE_S3_AVATAR_COMPRESS_THUMBNAIL_SIZE: "200"
+    JACKSON_WRITE_DATES_AS_TIMESTAMPS: "false"
+    JACKSON_TIME_ZONE: Asia/Shanghai
+    RABBITMQ_HOST: rabbitmq
+    RABBITMQ_PORT: "5672"
+    RABBITMQ_USERNAME: root
+    RABBITMQ_PASSWORD: 123456
+    RABBITMQ_VIRTUAL_HOST: /
+    RABBITMQ_RETRY_ENABLED: "true"
+    RABBITMQ_RETRY_MAX_ATTEMPTS: "3"
+    RABBITMQ_RETRY_INITIAL_INTERVAL: 1000ms
+    RABBITMQ_DEFAULT_REQUEUE_REJECTED: "false"
+    TASK_EXECUTION_POOL_CORE_SIZE: "4"
+    TASK_EXECUTION_POOL_MAX_SIZE: "8"
+    TASK_EXECUTION_POOL_QUEUE_CAPACITY: "100"
+    TASK_EXECUTION_POOL_KEEP_ALIVE: 60s
+    TASK_EXECUTION_POOL_ALLOW_CORE_THREAD_TIMEOUT: "true"
+    SPRING_APPLICATION_NAME: chat-system
+    DATASOURCE_URL: jdbc:mysql://mysql:3306/chat_system?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    DATASOURCE_USERNAME: root
+    DATASOURCE_PASSWORD: 123456
+    DATASOURCE_HIKARI_CONNECTION_TIMEOUT: "30000"
+    DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "50"
+    DATASOURCE_HIKARI_MINIMUM_IDLE: "5"
+    DATASOURCE_HIKARI_IDLE_TIMEOUT: "600000"
+    DATASOURCE_HIKARI_MAX_LIFETIME: "1800000"
+    JPA_HIBERNATE_DDL_AUTO: update
+    JPA_SHOW_SQL: "false"
+    JPA_HIBERNATE_FORMAT_SQL: "false"
+    JPA_HIBERNATE_JDBC_BATCH_SIZE: "20"
+    JPA_HIBERNATE_ORDER_INSERTS: "true"
+    JPA_HIBERNATE_ORDER_UPDATES: "true"
+    REDIS_HOST: redis
+    REDIS_PORT: "6379"
+    REDIS_PASSWORD: 123456
+    REDIS_DATABASE: "0"
+    REDIS_TIMEOUT: 5000ms
+    REDIS_CONNECT_TIMEOUT: 2000ms
+    MONGODB_HOST: mongodb
+    MONGODB_PORT: "27017"
+    MONGODB_DATABASE: chatsystem
+    MONGODB_USERNAME: root
+    MONGODB_PASSWORD: 123456
+    MONGODB_AUTHENTICATION_DATABASE: admin
+    SERVLET_MULTIPART_MAX_FILE_SIZE: 100MB
+    SERVLET_MULTIPART_MAX_REQUEST_SIZE: 100MB
+    JWT_SECRET: 123456
+    JWT_EXPIRATION: "86400000"
+    JWT_HEADER: Authorization
+    JWT_PREFIX: "Bearer "
+    JWT_SALT: 123456
+    AI_API_KEY: ollama
+    AI_BASE_URL: http://ollama:11434
+    AI_MODEL: qwen3:4b-instruct
+    AI_TIMEOUT_SECONDS: "120"
+    AI_MAX_TOKENS: "4096"
+    AI_TEMPERATURE: "0.7"
+    AI_PROMPTS_AUTO_SUMMARY: "你是任务提取助手。从聊天记录中提取用户待办事项或关键动作。严格按以下格式输出：\n### 标题\n- 短描述\n要求：标题最多4个汉字，每条描述（含'- '）不超过30个字符（约13个汉字）。最多3条。只输出Markdown，不要解释。示例：\n### 今日\n- 交报告\n- 开会"
+    AI_PROMPTS_KEY_POINTS: "从以下聊天记录中提取注意事项或待办。严格按Markdown无序列表输出：\n- 短要点\n要求：每条（含'- '）不超过30字符（约13个汉字）。最多5条。没有则输出：暂无重要事项"
+    AI_PROMPTS_REPLY_SUGGESTION: "基于上下文拟定回复。直接输出回复文本，不要任何前缀。如需要换行，每行不超过30字符（含标点）。可使用Markdown换行（两个空格+换行）或自然分段。示例：\n好的，收到\n我会尽快处理"
+    CORS_ALLOWED_ORIGINS: http://localhost,http://localhost:5173
+    LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_SECURITY: DEBUG
+    LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_WEB_CORS: TRACE
+  networks:
+    - chat-network
+
+    
+services:
+  mysql:
+    image: mysql:8.0.45
+    container_name: chat-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: chat_system
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+      - --innodb_buffer_pool_size=12G
+      - --innodb_log_buffer_size=64M
+      - --innodb_log_file_size=2G
+      - --innodb_flush_log_at_trx_commit=2
+      - --max_connections=1000
+      - --max_connect_errors=100000
+      - --thread_cache_size=256
+      - --table_open_cache=8192
+      - --innodb_thread_concurrency=16
+      - --innodb_read_io_threads=16
+      - --innodb_write_io_threads=16
+      - --innodb_io_capacity=2000
+      - --innodb_io_capacity_max=4000
+      - --join_buffer_size=4M
+      - --sort_buffer_size=4M
+      - --read_buffer_size=2M
+      - --tmp_table_size=256M
+      - --max_heap_table_size=256M
+      - --skip_name_resolve=ON
+      - --slow_query_log=1
+      - --long_query_time=1
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 60s
+    networks:
+      - chat-network
+
+  redis:
+    image: redis:7.0.15-alpine
+    container_name: chat-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: >
+      redis-server
+      --maxmemory 8gb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      --appendfsync everysec
+      --maxclients 10000
+      --io-threads 8
+      --io-threads-do-reads yes
+      --activerehashing yes
+      --lazyfree-lazy-eviction yes
+      --lazyfree-lazy-expire yes
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --requirepass 123456
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - chat-network
+
+  mongodb:
+    image: mongo:6.0.27
+    container_name: chat-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: 123456
+      MONGO_INITDB_DATABASE: chatsystem
+      TZ: Asia/Shanghai
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    command: mongod --wiredTigerCacheSizeGB 12 --auth
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+    networks:
+      - chat-network
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: chat-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: root
+      RABBITMQ_DEFAULT_PASS: 123456
+      RABBITMQ_DEFAULT_VHOST: /
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "+S 8:8 +P 1048576"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - chat-network
+
+  minio:
+    image: minio/minio:RELEASE.2025-02-28T09-55-16Z
+    container_name: chat-minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: root
+      MINIO_ROOT_PASSWORD: 123456
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - chat-network
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: chat-minio-init
+    depends_on:
+      - minio
+    volumes:
+      - ./minio/init:/init
+    entrypoint: >
+      /bin/sh -c "
+      sleep 5;
+      mc alias set local http://minio:9000 root 123456;
+      mc mb local/chat-db --ignore-existing;
+      mc anonymous set public local/chat-db;
+      if ! mc stat local/chat-db/system/default/avatar.jpg > /dev/null 2>&1; then
+        mc cp /init/avatar.jpg local/chat-db/system/default/avatar.jpg;
+        echo '默认头像上传成功';
+      else
+        echo '默认头像已存在，跳过上传';
+      fi;
+      echo 'MinIO 初始化完成';
+      exit 0;
+      "
+    networks:
+      - chat-network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: chat-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    environment:
+      - OLLAMA_HOST=0.0.0.0
+      - NVIDIA_VISIBLE_DEVICES=all
+      - OLLAMA_KEEP_ALIVE=-1
+    runtime: nvidia
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - chat-network
+
+  frontend:
+    build: ../frontend
+    container_name: chat-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend1
+      - backend2
+    networks:
+      - chat-network
+
+  backend1:
+    <<: *backend-template
+    container_name: chat-backend-1
+    ports:
+      - "8080:8080"
+
+  backend2:
+    <<: *backend-template
+    container_name: chat-backend-2
+    ports:
+      - "8081:8080"
+
+  portainer:
+    image: outlovecn/portainer-cn:latest
+    container_name: chat-portainer
+    restart: unless-stopped
+    ports:
+      - "9002:9000"      # HTTP 访问: http://宿主机IP:9002
+      - "9443:9443"      # HTTPS 访问: https://宿主机IP:9443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock   # 管理宿主机 Docker
+      - ./portainer_data:/data                       # 持久化配置
+    networks:
+      - chat-network
+
+  # DbGate - 多数据库管理（MySQL, Redis, MongoDB）
+  dbgate:
+    image: dbgate/dbgate:latest
+    container_name: chat-dbgate
+    restart: unless-stopped
+    ports:
+      - "8082:3000"
+    environment:
+      - LANGUAGE=zh
+      # 定义连接列表
+      - CONNECTIONS=mysql_con,redis_con,mongo_con
+      # MySQL 连接配置
+      - LABEL_mysql_con=MySQL数据库
+      - SERVER_mysql_con=mysql
+      - USER_mysql_con=root
+      - PASSWORD_mysql_con=123456
+      - PORT_mysql_con=3306
+      - ENGINE_mysql_con=mysql@dbgate-plugin-mysql
+      # Redis 连接配置
+      - LABEL_redis_con=Redis数据库
+      - SERVER_redis_con=redis
+      - PASSWORD_redis_con=123456
+      - PORT_redis_con=6379
+      - ENGINE_redis_con=redis@dbgate-plugin-redis
+      # MongoDB 连接配置
+      - LABEL_mongo_con=MongoDB数据库
+      - SERVER_mongo_con=mongodb
+      - USER_mongo_con=root
+      - PASSWORD_mongo_con=123456
+      - PORT_mongo_con=27017
+      - ENGINE_mongo_con=mongo@dbgate-plugin-mongo
+    volumes:
+      - ./dbgate_data:/root/.dbgate
+    networks:
+      - chat-network
+volumes:
+  mysql-data:
+  redis-data:
+  mongo-data:
+  rabbitmq-data:
+  minio-data:
+  ollama-data:
+
+networks:
+  chat-network:
+    driver: bridge

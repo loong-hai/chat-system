@@ -1,0 +1,167 @@
+/* src/style.css */
+* {
+  box-sizing: border-box;
+}
+
+
+* {
+  box-sizing: border-box;
+}
+
+/* ==================== 设计系统变量（阶段1：地基）==================== */
+:root {
+  /* 基准字体大小：1rem = 16px */
+  font-size: 16px;
+  
+  /* --- 1. 头像尺寸阶梯（8的倍数，便于计算）--- */
+  --avatar-xs: 1.5rem;      /* 24px - 消息列表内嵌小头像 */
+  --avatar-sm: 2rem;        /* 32px - 紧凑模式（可选） */
+  --avatar-md: 2.5rem;      /* 40px - 标准头像（ ConversationList 默认） */
+  --avatar-lg: 3.75rem;     /* 60px - 个人信息卡片/浮窗 */
+  --avatar-xl: 5rem;        /* 80px - 登录页/个人中心大头像 */
+  --avatar-xxl: 6.25rem;    /* 100px - 好友详情页大头像（FriendInfoPanel） */
+  
+  /* --- 2. Logo 尺寸（独立品牌识别）--- */
+  --logo-sm: 1.25rem;       /* 20px - 紧凑模式 */
+  --logo-md: 1.875rem;      /* 30px - 当前 Index.vue 默认值（基准） */
+  --logo-lg: 2.5rem;        /* 40px - 强调模式 */
+  
+  /* --- 3. 字体层级（Type Scale：1.125比例）--- */
+  --text-caption: 0.75rem;    /* 12px - 时间戳、辅助说明、badge文字 */
+  --text-small: 0.875rem;     /* 14px - 次要文本、签名、ID显示 */
+  --text-body: 1rem;          /* 16px - 正文、按钮、输入框 */
+  --text-medium: 1.125rem;    /* 18px - 强调正文、菜单项 */
+  --text-title: 1.25rem;      /* 20px - 卡片标题、好友昵称（ConversationList） */
+  --text-heading: 1.5rem;     /* 24px - 页面标题、登录页欢迎 */
+  --text-display: 1.75rem;    /* 28px - 大标题、数字统计 */
+  
+  /* --- 4. 字重 --- */
+  --font-light: 300;
+  --font-regular: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  
+  /* --- 5. 间距系统（8pt Grid）--- */
+  --space-xs: 0.25rem;    /* 4px */
+  --space-sm: 0.5rem;     /* 8px - 紧凑间距 */
+  --space-md: 0.75rem;    /* 12px - 标准间距（头像与文字间） */
+  --space-lg: 1rem;       /* 16px - 区块间距 */
+  --space-xl: 1.25rem;    /* 20px - 大间距 */
+  --space-xxl: 1.5rem;    /* 24px - 标题与内容间距 */
+  
+  /* --- 6. 颜色语义化（与 Element Plus 变量对齐）--- */
+  --text-primary: #171717;       /* 主文本（近黑） */
+  --text-secondary: #666666;     /* 次要文本（深灰） */
+  --text-tertiary: #999999;      /* 辅助文本（中灰） */
+  --text-placeholder: #bfbfbf;   /* 占位符（浅灰） */
+  --text-link: #409EFF;          /* 链接蓝（Element主色） */
+  --text-white: #ffffff;         /* 白文本（Header用） */
+  
+  /* --- 7. 布局尺寸（核心修复用）--- */
+  --header-height: 3.25rem;      /* 60px - chatHeader 高度 */
+  --sidebar-width: 3.5rem;         /* 64px - Navigation 固定宽度 */
+  --panel-min-width: 56.25rem;  /* 900px - chatRoot 最小宽度（1080p适配） */
+  --panel-max-width: 75rem;     /* 1200px - chatRoot 最大宽度（2K适配） */
+  
+  /* --- 8. Element Plus 变量覆盖（全局生效）--- */
+  --el-font-size-extra-small: var(--text-caption);
+  --el-font-size-small: var(--text-small);
+  --el-font-size-base: var(--text-body);
+  --el-font-size-medium: var(--text-medium);
+  --el-font-size-large: var(--text-title);
+  --el-font-size-extra-large: var(--text-heading);
+}
+
+/* --- 9. 1080p 适配：整体缩小 12.5%（14px基准）--- */
+@media (max-width: 1440px) and (max-height: 900px) {
+  :root {
+    font-size: 14px;  /* 这会压缩所有 rem 单位：40px->35px, 20px->17.5px */
+    
+    /* 特定组件微调：保持关键触摸目标不小于 44px */
+    --sidebar-width: 3.75rem;    /* 60px -> 52.5px (约54px)，保持可点击 */
+    --header-height: 3.5rem;     /* 56px，稍微压缩 */
+    
+    /* 字体在1080p下不过大 */
+    --text-title: 1.125rem;      /* 20px -> 15.75px (约16px) */
+    --text-heading: 1.25rem;     /* 24px -> 17.5px (约18px) */
+    --text-display: 1.5rem;      /* 28px -> 21px */
+  }
+}
+
+/* 针对 Windows 125% 或 150% 缩放（高 DPI）的补偿 */
+@media (-webkit-min-device-pixel-ratio: 1.25) {
+  :root {
+    /* 高分屏下稍微回调，避免过度缩小 */
+    font-size: 15px;
+  }
+}
+
+/* 针对 4K 屏（2160p）的优化 */
+@media (min-width: 2560px) and (min-height: 1440px) {
+  :root {
+    font-size: 18px;  /* 放大一级，保持可读性 */
+    --sidebar-width: 4.5rem;  /* 72px，更大触摸目标 */
+  }
+}
+
+/* ==================== 工具类（立即可以使用）==================== */
+
+/* 头像工具类 */
+.avatar-xs { width: var(--avatar-xs); height: var(--avatar-xs); font-size: 0.75rem; }
+.avatar-sm { width: var(--avatar-sm); height: var(--avatar-sm); font-size: 0.875rem; }
+.avatar-md { width: var(--avatar-md); height: var(--avatar-md); font-size: 1rem; }
+.avatar-lg { width: var(--avatar-lg); height: var(--avatar-lg); font-size: 1.25rem; }
+.avatar-xl { width: var(--avatar-xl); height: var(--avatar-xl); font-size: 1.75rem; }
+.avatar-xxl { width: var(--avatar-xxl); height: var(--avatar-xxl); font-size: 2.25rem; }
+
+/* 文本层级工具类 */
+.text-caption { font-size: var(--text-caption); line-height: 1.5; color: var(--text-tertiary); }
+.text-small { font-size: var(--text-small); line-height: 1.5; color: var(--text-secondary); }
+.text-body { font-size: var(--text-body); line-height: 1.5; color: var(--text-primary); }
+.text-medium { font-size: var(--text-medium); line-height: 1.4; font-weight: var(--font-medium); color: var(--text-primary); }
+.text-title { font-size: var(--text-title); line-height: 1.3; font-weight: var(--font-semibold); color: var(--text-primary); }
+.text-heading { font-size: var(--text-heading); line-height: 1.3; font-weight: var(--font-bold); color: var(--text-primary); }
+.text-display { font-size: var(--text-display); line-height: 1.2; font-weight: var(--font-bold); color: var(--text-primary); }
+
+/* 文本颜色工具类 */
+.text-primary { color: var(--text-primary); }
+.text-secondary { color: var(--text-secondary); }
+.text-tertiary { color: var(--text-tertiary); }
+.text-link { color: var(--text-link); }
+.text-white { color: var(--text-white); }
+
+
+html,
+body,
+#app {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+}
+
+/* 全局样式 */
+body {
+  margin: 0;
+  padding: 0;
+  font-family:
+    'Source Han Sans CN',     /* 思源黑体 */
+    'PingFang SC',
+    'Hiragino Sans GB',
+    'Microsoft YaHei',
+    sans-serif;
+  overflow-x: hidden;
+}
+
+
+
+/* 页面切换动画 */
+.page-enter-active,
+.page-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.page-enter-from,
+.page-leave-to {
+  opacity: 0;
+}

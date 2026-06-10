@@ -1,0 +1,126 @@
+﻿server:
+  port: ${SERVER_PORT}
+  servlet:
+    context-path: ${SERVER_SERVLET_CONTEXT_PATH}
+  tomcat:
+    uri-encoding: ${SERVER_TOMCAT_URI_ENCODING}
+
+storage:
+  s3:
+    endpoint: ${STORAGE_S3_ENDPOINT}
+    access-key: ${STORAGE_S3_ACCESS_KEY}
+    secret-key: ${STORAGE_S3_SECRET_KEY}
+    default-bucket: ${STORAGE_S3_DEFAULT_BUCKET}
+    region: ${STORAGE_S3_REGION}
+    default-avatar-path: ${STORAGE_S3_DEFAULT_AVATAR_PATH}
+    path-style-access: ${STORAGE_S3_PATH_STYLE_ACCESS}
+    presigned-url-expiry-minutes: ${STORAGE_S3_PRESIGNED_URL_EXPIRY_MINUTES}
+    cdn-domain: ${STORAGE_S3_CDN_DOMAIN}
+    avatar-compress:
+      enabled: ${STORAGE_S3_AVATAR_COMPRESS_ENABLED}
+      max-width: ${STORAGE_S3_AVATAR_COMPRESS_MAX_WIDTH}
+      max-height: ${STORAGE_S3_AVATAR_COMPRESS_MAX_HEIGHT}
+      quality: ${STORAGE_S3_AVATAR_COMPRESS_QUALITY}
+      thumbnail-size: ${STORAGE_S3_AVATAR_COMPRESS_THUMBNAIL_SIZE}
+
+spring:
+  jackson:
+    serialization:
+      write-dates-as-timestamps: ${JACKSON_WRITE_DATES_AS_TIMESTAMPS}
+    time-zone: ${JACKSON_TIME_ZONE}
+
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    virtual-host: ${RABBITMQ_VIRTUAL_HOST}
+    listener:
+      simple:
+        retry:
+          enabled: ${RABBITMQ_RETRY_ENABLED}
+          max-attempts: ${RABBITMQ_RETRY_MAX_ATTEMPTS}
+          initial-interval: ${RABBITMQ_RETRY_INITIAL_INTERVAL}
+        default-requeue-rejected: ${RABBITMQ_DEFAULT_REQUEUE_REJECTED}
+
+  task:
+    execution:
+      pool:
+        core-size: ${TASK_EXECUTION_POOL_CORE_SIZE}
+        max-size: ${TASK_EXECUTION_POOL_MAX_SIZE}
+        queue-capacity: ${TASK_EXECUTION_POOL_QUEUE_CAPACITY}
+        keep-alive: ${TASK_EXECUTION_POOL_KEEP_ALIVE}
+        allow-core-thread-timeout: ${TASK_EXECUTION_POOL_ALLOW_CORE_THREAD_TIMEOUT}
+
+  application:
+    name: ${SPRING_APPLICATION_NAME}
+
+  datasource:
+    url: ${DATASOURCE_URL}
+    username: ${DATASOURCE_USERNAME}
+    password: ${DATASOURCE_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-timeout: ${DATASOURCE_HIKARI_CONNECTION_TIMEOUT}
+      maximum-pool-size: ${DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE}
+      minimum-idle: ${DATASOURCE_HIKARI_MINIMUM_IDLE}
+      idle-timeout: ${DATASOURCE_HIKARI_IDLE_TIMEOUT}
+      max-lifetime: ${DATASOURCE_HIKARI_MAX_LIFETIME}
+
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_HIBERNATE_DDL_AUTO}
+    show-sql: ${JPA_SHOW_SQL}
+    properties:
+      hibernate:
+        format_sql: ${JPA_HIBERNATE_FORMAT_SQL}
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        jdbc:
+          batch_size: ${JPA_HIBERNATE_JDBC_BATCH_SIZE}
+        order_inserts: ${JPA_HIBERNATE_ORDER_INSERTS}
+        order_updates: ${JPA_HIBERNATE_ORDER_UPDATES}
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+      password: ${REDIS_PASSWORD}
+      database: ${REDIS_DATABASE}
+      timeout: ${REDIS_TIMEOUT}
+      connect-timeout: ${REDIS_CONNECT_TIMEOUT}
+    mongodb:
+      host: ${MONGODB_HOST}
+      port: ${MONGODB_PORT}
+      database: ${MONGODB_DATABASE}
+      username: ${MONGODB_USERNAME}
+      password: ${MONGODB_PASSWORD}
+      authentication-database: ${MONGODB_AUTHENTICATION_DATABASE}
+
+  servlet:
+    multipart:
+      max-file-size: ${SERVLET_MULTIPART_MAX_FILE_SIZE}
+      max-request-size: ${SERVLET_MULTIPART_MAX_REQUEST_SIZE}
+
+
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION}
+  header: ${JWT_HEADER}
+  prefix: ${JWT_PREFIX}
+  salt: ${JWT_SALT}
+
+ai:
+  api-key: ${AI_API_KEY}
+  base-url: ${AI_BASE_URL}
+  model: ${AI_MODEL}
+  timeout-seconds: ${AI_TIMEOUT_SECONDS}
+  max-tokens: ${AI_MAX_TOKENS}
+  temperature: ${AI_TEMPERATURE}
+  prompts:
+    auto-summary: ${AI_PROMPTS_AUTO_SUMMARY}
+    key-points: ${AI_PROMPTS_KEY_POINTS}
+    reply-suggestion: ${AI_PROMPTS_REPLY_SUGGESTION}
+
+logging:
+  level:
+    root: OFF
